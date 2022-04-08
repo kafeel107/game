@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>gravity</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body style="background-color: #3c9cdf">
+    <canvas id="canvas" style="background-color:#3c9cdf; border:2px solid black;"></canvas>
+    <div id="demo"></div>
+    <script>
+      var c = document.getElementById("canvas")
+      c.width=window.innerWidth-15
+      c.height=window.innerHeight-20
+      ctx = c.getContext("2d")
+      ctx.font = "25px Arial"
+      
+      function rand(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+      
+      var run = true
+      
+       const box = document.createElement("div");
+       box.style.display = "none"
+       demo.appendChild(box);
+      
+      var r = 25
+      var x = 80
+      var y = c.height/2
+      var dy = 16
+      const n1 = 1.9
+      var gravity = n1
+      var click = false
+      
+      var x2 = window.innerWidth+45
+      const k = ((35/100)*c.height)
+      var v = rand(0, ((c.height/2)+80))
+      var height2 = v
+      var height1 = (c.height-(v+k))
+      var y1 = 1
+      var y2 = (c.height - (height2+1))
+      var dx = 2.8
+      const width = 60
+      rect = new Rect()
+      
+      var cx = x;
+      var rx = x2;
+      var rx2 = x2;
+      var cy = y;
+      var ry = y2;
+      var ry2 = y1;
+      
+      var score = 0 
+      var previousScore = 0
+      const count = 1
+      
+      function Score(){
+        ctx.beginPath()
+        ctx.strokeText(`Score: ${score}`, 10,40)
+        ctx.strokeStyle = "black"
+        ctx.closePath()
+      }
+      
+      function HighScore(){
+        if(score>previousScore){
+          previousScore = score
+        }else if (score<previousScore){
+          previousScore = previousScore
+        }
+      }
+      
+      function highScore(){
+        ctx.beginPath()
+        ctx.strokeText(`High Score: ${previousScore}`, 10,70)
+        ctx.strokeStyle = "black"
+        ctx.closePath()
+      }
+     
+      function Circle(){
+        this.r = r 
+        this.x = x 
+        this.y = y
+        this.dy = 0
+        this.draw = function(){
+          ctx.beginPath()
+          ctx.arc(this.x,this.y,this.r,0,Math.PI*2)
+          ctx.fillStyle="rgb(70,41,8)"
+          ctx.fill()
+          ctx.stroke()
+        }
+        this.update = function(){
+          this.y += this.dy
+          cx = this.x
+          cy = this.y
+          if(click==true){
+            if(this.y-r>0){
+              this.dy = -dy
+            }else{
+              this.dy = 0
+            }
+            click = false
+          }else{
+            this.dy+=gravity
+          }
+          if(this.y+this.dy+r>c.height){
+            this.dy = 0
+          }
+        }
+      }
+      
+      function Rect(){
+        this.x = x2 
+        this.y1 = y1
+        this.y2 = y2
+        this.dx = dx
+        this.height1 = height1
+        this.height2 = height2
+        this.width = width
+        this.draw = function(){
+          ctx.beginPath()
+          ctx.rect(this.x, this.y1, this.width, this.height1)
+          ctx.fillStyle="rgba(230,230,230,0.9)"
+          ctx.fill()
+          ctx.stroke()
+          ctx.closePath()
+          
+          ctx.beginPath()
+          ctx.rect(this.x, this.y2, this.width, this.height2)
+          ctx.fillStyle="rgba(230,230,230,0.9)"
+          ctx.fill()
+          ctx.stroke()
+          ctx.closePath()
+        }
+        this.update = function(){
+          this.x += -this.dx
+          rx = this.x
+          ry = this.y2
+          rx2 = this.x
+          ry2 = this.y1
+          if(this.x < -width-5){
+            this.x = x2
+            score += count
+            v = rand(0, ((c.height/2)+80))
+            height2 = v
+            y2 = (c.height - (height2+1))
+            height1 = (c.height-(v+k))
+            this.height2 = height2
+            this.height1 = height1
+            this.y2 = y2
+          }
+        }
+      }
+      
+      function checkCollision1(){
+        let distX = Math.abs(cx - rx - width/2);
+        let distY = Math.abs(cy - ry - height2/2);
+        if (distX > (width/2 + r)){ 
+         return false; 
+        }
+        if (distY > (height2/2 + r)) { return false; 
+        }
+
+        if (distX <= (width/2)) { 
+          return gameOver()
+        } 
+        if (distY <= (height2/2)) {
+          return gameOver()
+        }
+        let kdx=distX-width/2;
+        let kdy=distY-height2/2;
+        if((kdx*kdx+kdy*kdy<=(r*r))){
+          return gameOver()
+        }
+     }
+     
+      function checkCollision2(){
+        let distX = Math.abs(cx - rx2 - width/2);
+        let distY = Math.abs(cy - ry2 - height1/2);
+        if (distX > (width/2 + r)){ 
+         return false; 
+        }
+        if (distY > (height1/2 + r)) { return false; 
+        }
+        if (distX <= (width/2)) { 
+          return gameOver()
+        } 
+        if (distY <= (height1/2)) {
+          return gameOver()
+        }
+        let kdx=distX-width/2;
+        let kdy=distY-height1/2;
+        if((kdx*kdx+kdy*kdy<=(r*r))){
+          return gameOver()
+        }
+     }
+     
+     function gameOver(){
+       run = false
+       window.navigator.vibrate(150)
+       HighScore()
+       rect.dx = 0 
+       circle.dy = 0
+       createElement(document.getElementById("demo"))
+     }
+     
+     function retry(){
+       box.style.display = "none"
+       score = 0
+       rect.dx = dx
+       circle.dy = dy
+       circle.y = y
+       rect.x = x2
+       cx = x;
+       rx = x2;
+       rx2 = x2;
+       cy = y;
+       ry = y2;
+       ry2 = y1;
+       run = true
+     }
+     
+     function createElement(k){
+       const h = ((24/100)*c.height)
+       const i =(((50/100)*c.height)-(h/2))
+       box.style.display = "block"
+       box.innerHTML="Game Over!!!"
+       box.style.paddingTop = "5%"
+       box.style.color = "#ba0b31"
+       box.style.fontSize = "30px"
+       box.style.textAlign = "center"
+       box.style.position = "absolute"
+       box.style.width=80+"%"
+       box.style.height = h+"px"
+       box.style.backgroundColor = "rgba(0,0,0,0.5"
+       box.style.left = 0
+       box.style.top = i+"px"
+       box.style.down = 0
+       box.style.right = 0
+       box.style.margin = "auto"
+       box.style.border = "2px solid #1f3a9d"
+       box.style.boxShadow = "1px 2px 3px black"
+       box.style.borderRadius = "20px"
+       const btn = document.createElement("button")
+       btn.style.height = "30%"
+       btn.style.width = "50%"
+       btn.innerHTML = "Retry"
+       btn.style.position = "absolute"
+       btn.style.left = 0
+       btn.style.top = 55+"%"
+       btn.style.down = 0
+       btn.style.right = 0
+       btn.style.margin = "auto"
+       btn.style.backgroundColor = "rgba(255,255,255,0.4)"
+       btn.style.outline = "none"
+       btn.style.fontSize = "20px"
+       btn.style.borderRadius = "10px"
+       btn.style.border = "2px groove rgba(0,0,0,0)"
+       btn.addEventListener("click", retry)
+       box.appendChild(btn)
+     }
+      
+      window.addEventListener("click", onclick)
+      
+       //----------For PC------------------
+        document.addEventListener('keydown', event => {
+            if (event.code === 'Space') {
+              onclick()
+           }
+        })
+      //-----------------------------------
+      
+      function onclick(){
+        click = true
+      }
+      
+      circle = new Circle()
+      var then = Date.now()
+      var now;
+      var fps = 45
+      function animate(){
+        now = Date.now()
+        var difference = now - then
+        if(difference > 1000/fps){
+          ctx.clearRect(0,0,c.width,c.height)
+          if(run==true){
+            checkCollision1()
+            checkCollision2()
+            circle.draw()
+            circle.update()
+            rect.draw()
+            rect.update()
+            highScore()
+            Score()
+          }else{
+            circle.draw()
+            rect.draw()
+            highScore()
+            Score()
+          }
+          then = now
+        }
+        window.requestAnimationFrame(animate)
+      }
+      animate()
+    </script>
+  </body>
+</html>
